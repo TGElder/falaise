@@ -75,6 +75,42 @@ public class OSMReader
 		return changed;
 	}
 	
+	public void listSkiAreas()
+	{
+		NodeList nodes = document.getChildNodes();
+		
+		for (int n=0; n<nodes.getLength(); n++)
+		{
+			if (nodes.item(n).getNodeType()==Node.ELEMENT_NODE)
+			{
+				Element element = (Element)nodes.item(n);
+				
+				if (element.getTagName().equals("relation"))
+				{
+					long id = Long.parseLong(element.getAttribute("id"));
+					
+					Map<String,String> attributes = getAttributes(element);
+					
+					if (attributes.containsKey("type")&&attributes.get("type").equals("site")&&attributes.containsKey("site")&&attributes.get("site").equals("piste"))
+					{
+						System.out.println(attributes.get("name")+" "+id);
+					}
+					
+//					if (attributes.containsKey("landuse")&&attributes.get("landuse").equals("winter_sports"))
+//					{
+//						System.out.println(attributes.get("name")+" "+id);
+//					}
+//					
+//					if (attributes.containsKey("name")&&attributes.get("name").equals("Espace Killy"))
+//					{
+//						System.out.println(attributes.get("name")+" "+id);	
+//					}
+			
+				}
+			}
+		}
+	}
+	
 	Map<String,String> getAttributes(Element element)
 	{
 		Map<String,String> out = new HashMap<String,String> ();
@@ -111,15 +147,18 @@ public class OSMReader
 	
 	public static void main(String[] args)
 	{
-		OSMReader reader = new OSMReader("vt2.osm");
+		OSMReader reader = new OSMReader("tarentaise.osm");
+		reader.listSkiAreas();
 		reader.getRelations().get(3545276l); //Means reader will start by loading Three Valleys relation
 		reader.run();
 		
-		int[][] heights = Heightmap.loadFromCSV("three valleys.csv",1236,1256);
-		Heightmap heightmap = new Heightmap(1236,1256,6.402246000000,45.195848611650,0.000277769417,heights);
+		int[][] heights = Heightmap.loadFromCSV("tarentaise.csv",2339,1618);
+		Heightmap heightmap = new Heightmap(2339,1618,6.450138888889,45.200138888884,0.000277777778,heights);
 		
 		PisteBuilder pisteBuilder = new PisteBuilder(heightmap);
 		pisteBuilder.build(reader.getWays().getValues());
+		
+		pisteBuilder.write("out.kml");
 	}
 	
 	public OSMLibrary<OSMNode> getNodes()

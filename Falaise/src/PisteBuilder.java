@@ -1,5 +1,10 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.HashSet;
+
+import de.micromata.opengis.kml.v_2_2_0.*;
+
 
 public class PisteBuilder
 {
@@ -15,7 +20,9 @@ public class PisteBuilder
 	{
 		for (OSMWay osmWay : osmWays)
 		{
-			if (osmWay.getAttributes().get("piste:type")!=null&&osmWay.getAttributes().get("piste:type").equals("downhill"))
+			if (osmWay.getAttributes().containsKey("piste:type")
+					&&osmWay.getAttributes().get("piste:type").equals("downhill")
+					&&!osmWay.getAttributes().containsKey("area"))
 			{
 			
 				String name = osmWay.getAttributes().get("piste:name");
@@ -63,6 +70,8 @@ public class PisteBuilder
 			
 		}
 		
+		write("ways.kml");
+		
 		Collection<Piste> newPistes = new HashSet<Piste> ();
 		
 		for (Piste piste : pistes)
@@ -77,7 +86,7 @@ public class PisteBuilder
 		for (Piste piste : pistes)
 		{
 			piste.computeRoutes();
-			System.out.print(piste.getName()+","+piste.getRef()+","+piste.getDifficulty()+","+piste.getRoutes().size());
+			System.out.print("Les Trois Vallées,"+piste.getName()+","+piste.getRef()+","+piste.getDifficulty()+","+piste.getRoutes().size());
 			
 			if (piste.getRoutes().size()>0)
 			{
@@ -104,6 +113,71 @@ public class PisteBuilder
 		{
 			return a.equals(b);
 		}
+	}
+	
+	public void write(String file)
+	{
+	
+		final Kml kml = KmlFactory.createKml();
+				
+		final Document document = kml.createAndSetDocument().withName(file).withOpen(false);
+						
+		final Style labelStyle = document.createAndAddStyle();
+		
+		
+		
+		labelStyle.createAndSetIconStyle().withColor("00FFFFFF");
+		labelStyle.createAndSetLabelStyle().withScale(0.7);
+		
+		document.createAndAddStyle().withId("red").createAndSetPolyStyle().withColor("000000FFFF");	
+
+		Placemark line;
+		LineString lineString; 
+		
+		for (Piste piste : pistes)
+		{
+			Folder pisteFolder = document.createAndAddFolder().withName(piste.getName());
+			
+			for (int r=0 ; r<piste.getRoutes().size(); r++)
+			{
+				Route route = piste.getRoutes().get(r);
+				
+				line = pisteFolder.createAndAddPlacemark().withName("Route "+r);
+				lineString = line.createAndSetLineString();
+			
+				for (OSMNode osmNode : route.getNodes())
+				{
+					lineString.addToCoordinates(osmNode.getLongitude(), osmNode.getLatitude());
+				}
+
+			}
+			
+			for (OSMWay way : piste.getWays())
+			{
+				line = pisteFolder.createAndAddPlacemark().withName(way.getID()+"");
+				lineString = line.createAndSetLineString();
+			
+				for (OSMNode osmNode : way.getNodes())
+				{
+					lineString.addToCoordinates(osmNode.getLongitude(), osmNode.getLatitude());
+				}
+
+			}
+			
+		}
+		
+		
+
+		
+		try 
+		{
+			kml.marshal(new File(file));
+		} 
+		catch (FileNotFoundException e) 
+		{
+			e.printStackTrace();
+		}
+		
 	}
 
 }

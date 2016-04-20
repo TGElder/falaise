@@ -108,4 +108,9 @@ public class Route implements Comparable<Route>
 		return maxAngle;
 	}
 
+	public List<OSMNode> getNodes()
+	{
+		return osmNodes;
+	}
+
 }

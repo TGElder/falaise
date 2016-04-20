@@ -15,7 +15,9 @@ public class Piste
 	
 	private Map<OSMNode,Node> nodes = new HashMap<OSMNode,Node> ();
 	
-	private List<Route> routes;
+	private List<Route> routes = new ArrayList<Route> ();
+	
+	private Collection<OSMWay> ways = new HashSet<OSMWay> (); 
 	
 	public Piste(String name, String ref, String difficulty)
 	{
@@ -24,8 +26,7 @@ public class Piste
 		this.difficulty = difficulty;
 	}
 	
-	
-	
+
 	public void addWay(OSMWay way)
 	{
 		for (int n=0; n<way.getNodes().size()-1; n++)
@@ -39,6 +40,8 @@ public class Piste
 			nodeA.getDownhill().add(nodeB);
 			nodeB.getUphill().add(nodeA);
 		}
+		
+		ways.add(way);
 	}
 	
 	public void addNode(Node node)
@@ -164,7 +167,6 @@ public class Piste
 			}
 		}
 		
-		routes = new ArrayList<Route> ();
 		List<OSMNode> route = new ArrayList<OSMNode> ();
 		
 		for (Node start : startNodes)
@@ -202,6 +204,11 @@ public class Piste
 	public List<Route> getRoutes()
 	{
 		return routes;
+	}
+	
+	public Collection<OSMWay> getWays()
+	{
+		return ways;
 	}
 
 
