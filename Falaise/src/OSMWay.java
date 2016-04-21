@@ -11,10 +11,22 @@ public class OSMWay implements OSMElement
 	private long id;
 	private List<OSMNode> osmNodes = new ArrayList<OSMNode> ();
 	private Map<String,String> attributes = new HashMap<String,String> ();
+	
+	private List<OSMRelation> relations = new ArrayList<OSMRelation> ();
 
 	public OSMWay(long id)
 	{
 		this.id = id;
+	}
+	
+	public void addRelation(OSMRelation relation)
+	{
+		relations.add(relation);
+	}
+	
+	public List<OSMRelation> getRelations()
+	{
+		return relations;
 	}
 
 	@Override

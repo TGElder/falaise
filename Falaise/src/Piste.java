@@ -9,6 +9,7 @@ import java.util.Map;
 public class Piste
 {
 	
+	private final String area;
 	private final String name;
 	private final String ref;
 	private final String difficulty;
@@ -19,8 +20,9 @@ public class Piste
 	
 	private Collection<OSMWay> ways = new HashSet<OSMWay> (); 
 	
-	public Piste(String name, String ref, String difficulty)
+	public Piste(String area, String name, String ref, String difficulty)
 	{
+		this.area = area;
 		this.name = name;
 		this.ref = ref;
 		this.difficulty = difficulty;
@@ -37,8 +39,14 @@ public class Piste
 			Node nodeA = getNode(a);
 			Node nodeB = getNode(b);
 			
-			nodeA.getDownhill().add(nodeB);
-			nodeB.getUphill().add(nodeA);
+			if (!nodeA.getDownhill().contains(nodeB))
+			{
+				nodeA.getDownhill().add(nodeB);
+			}
+			if (!nodeB.getUphill().contains(nodeA))
+			{
+				nodeB.getUphill().add(nodeA);
+			}
 		}
 		
 		ways.add(way);
@@ -70,6 +78,11 @@ public class Piste
 		return node;
 	}
 
+	public String getArea()
+	{
+		return area;
+	}
+	
 	public String getName()
 	{
 		return name;
@@ -144,7 +157,7 @@ public class Piste
 		{
 			for (Collection<Node> nodeGroup : nodeGroups)
 			{
-				Piste piste = new Piste(name,ref,difficulty);
+				Piste piste = new Piste(area,name,ref,difficulty);
 				piste.addNodes(nodeGroup);
 				out.add(piste);
 			}
@@ -156,7 +169,7 @@ public class Piste
 	
 	public void computeRoutes()
 	{
-
+		
 		List<Node> startNodes = new ArrayList<Node> ();
 		
 		for (Node node : nodes.values())

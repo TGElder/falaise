@@ -75,8 +75,10 @@ public class OSMReader
 		return changed;
 	}
 	
-	public void listSkiAreas()
+	public Map<Long,String> getSkiAreas()
 	{
+		Map<Long,String> out = new HashMap<Long,String> ();
+		
 		NodeList nodes = document.getChildNodes();
 		
 		for (int n=0; n<nodes.getLength(); n++)
@@ -93,22 +95,31 @@ public class OSMReader
 					
 					if (attributes.containsKey("type")&&attributes.get("type").equals("site")&&attributes.containsKey("site")&&attributes.get("site").equals("piste"))
 					{
-						System.out.println(attributes.get("name")+" "+id);
+						out.put(id, attributes.get("name"));
 					}
 					
-//					if (attributes.containsKey("landuse")&&attributes.get("landuse").equals("winter_sports"))
+//					NodeList members = element.getElementsByTagName("member");
+					
+//					for (int m=0; m<members.getLength(); m++)
 //					{
-//						System.out.println(attributes.get("name")+" "+id);
-//					}
+//						Element member = (Element)members.item(m);
+//						
+//						String type = member.getAttribute("type");
+//						
+//						if (type.equals("relation"))
+//						{
+//						
+//							long memberID = Long.parseLong(member.getAttribute("ref"));
 //					
-//					if (attributes.containsKey("name")&&attributes.get("name").equals("Espace Killy"))
-//					{
-//						System.out.println(attributes.get("name")+" "+id);	
+//						}
+//						
 //					}
 			
 				}
 			}
 		}
+		
+		return out;
 	}
 	
 	Map<String,String> getAttributes(Element element)
@@ -147,13 +158,21 @@ public class OSMReader
 	
 	public static void main(String[] args)
 	{
-		OSMReader reader = new OSMReader("tarentaise.osm");
-		reader.listSkiAreas();
-		reader.getRelations().get(3545276l); //Means reader will start by loading Three Valleys relation
+		OSMReader reader = new OSMReader("french_alps.osm");
+		System.out.println(reader.getSkiAreas());
+		
+		for (Long id : reader.getSkiAreas().keySet())
+		{
+			reader.getRelations().get(id);
+		}
+		
+//		reader.getRelations().get(3545276l); //Means reader will start by loading Three Valleys relation
+//		reader.getRelations().get(5994227l); //Means reader will start by loading Three Valleys relation
+
 		reader.run();
 		
-		int[][] heights = Heightmap.loadFromCSV("tarentaise.csv",2339,1618);
-		Heightmap heightmap = new Heightmap(2339,1618,6.450138888889,45.200138888884,0.000277777778,heights);
+		int[][] heights = Heightmap.loadFromCSV("french_alps.csv",5003,6730);
+		Heightmap heightmap = new Heightmap(5003,6730,6.140138888889,44.560138888883,0.000277777778,heights);
 		
 		PisteBuilder pisteBuilder = new PisteBuilder(heightmap);
 		pisteBuilder.build(reader.getWays().getValues());
