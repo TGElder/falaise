@@ -75,6 +75,35 @@ public class OSMReader
 		return changed;
 	}
 	
+	public void readAll()
+	{
+		NodeList nodes = document.getChildNodes();
+		
+		for (int n=0; n<nodes.getLength(); n++)
+		{
+			if (nodes.item(n).getNodeType()==Node.ELEMENT_NODE)
+			{
+				Element element = (Element)nodes.item(n);
+				
+				if (element.getTagName().equals("node"))
+				{
+					long id = Long.parseLong(element.getAttribute("id"));
+					osmNodes.get(id);
+				}
+				if (element.getTagName().equals("way"))
+				{
+					long id = Long.parseLong(element.getAttribute("id"));
+					osmWays.get(id);
+				}
+				if (element.getTagName().equals("relation"))
+				{
+					long id = Long.parseLong(element.getAttribute("id"));
+					osmRelations.get(id);
+				}
+			}
+		}
+	}
+	
 	public Map<Long,String> getSkiAreas()
 	{
 		Map<Long,String> out = new HashMap<Long,String> ();
@@ -159,23 +188,31 @@ public class OSMReader
 	public static void main(String[] args)
 	{
 		OSMReader reader = new OSMReader("french_alps.osm");
-		System.out.println(reader.getSkiAreas());
-		
-		for (Long id : reader.getSkiAreas().keySet())
-		{
-			reader.getRelations().get(id);
-		}
+//		System.out.println(reader.getSkiAreas());
+//		
+//		for (Long id : reader.getSkiAreas().keySet())
+//		{
+//			reader.getRelations().get(id);
+//		}
 		
 //		reader.getRelations().get(3545276l); //Means reader will start by loading Three Valleys relation
 //		reader.getRelations().get(5994227l); //Means reader will start by loading Three Valleys relation
 
+		reader.readAll();
 		reader.run();
+		
+		AreaBuilder areaBuilder = new AreaBuilder();
+		areaBuilder.build(reader.getWays().getValues(),reader.getRelations().getValues());
+		areaBuilder.attachToWays(reader.getWays().getValues());
+		
 		
 		int[][] heights = Heightmap.loadFromCSV("french_alps.csv",5003,6730);
 		Heightmap heightmap = new Heightmap(5003,6730,6.140138888889,44.560138888883,0.000277777778,heights);
 		
 		PisteBuilder pisteBuilder = new PisteBuilder(heightmap);
 		pisteBuilder.build(reader.getWays().getValues());
+		
+		
 		
 		pisteBuilder.write("out.kml");
 	}

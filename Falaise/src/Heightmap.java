@@ -24,13 +24,18 @@ public class Heightmap
 		this.heights = heights;
 	}
 	
-	public double getHeightAt(double latitude, double longitude)
+	public Double getHeightAt(double latitude, double longitude)
 	{
 		double dx = (longitude - xllcorner)/cellsize;
 		double dy = nrows - ((latitude - yllcorner)/cellsize);
 		
 		int ix = (int)dx;
 		int iy = (int)dy;
+		
+		if (ix<0||(ix+1)>=ncols||iy<0||(iy+1)>=nrows)
+		{
+			return null;
+		}
 		
 		double rx = dx - ix;
 		double ry = dy - iy;

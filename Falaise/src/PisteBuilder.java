@@ -42,20 +42,18 @@ public class PisteBuilder
 				
 				String area = "";
 				
-				for (OSMRelation relation : osmWay.getRelations())
+				for (SkiArea skiArea : osmWay.getAreas())
 				{
-					if (relation.getAttributes().containsKey("name"))
-					{
-						if (area.length()>0)
-						{
-							area += "//";
 					
-						}
-						else
-						{
-							area += relation.getAttributes().get("name");
-						}
+					if (area.length()>0)
+					{
+						area += "/";
+				
 					}
+					
+					area += skiArea.getName();
+					
+					
 
 				}
 				
@@ -138,7 +136,7 @@ public class PisteBuilder
 			{
 				String line="";
 				
-				line += piste.getArea()+","+piste.getName()+","+piste.getRef()+","+piste.getDifficulty()+","+piste.getRoutes().size();
+				line += piste.getArea()+",\""+piste.getName()+"\","+piste.getRef()+","+piste.getDifficulty()+","+piste.getRoutes().size();
 				
 				if (piste.getRoutes().size()>0)
 				{

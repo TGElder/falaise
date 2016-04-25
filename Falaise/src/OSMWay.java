@@ -12,21 +12,21 @@ public class OSMWay implements OSMElement
 	private List<OSMNode> osmNodes = new ArrayList<OSMNode> ();
 	private Map<String,String> attributes = new HashMap<String,String> ();
 	
-	private List<OSMRelation> relations = new ArrayList<OSMRelation> ();
+	private List<SkiArea> areas = new ArrayList<SkiArea> ();
 
 	public OSMWay(long id)
 	{
 		this.id = id;
 	}
 	
-	public void addRelation(OSMRelation relation)
+	public void addSkiArea(SkiArea area)
 	{
-		relations.add(relation);
+		areas.add(area);
 	}
 	
-	public List<OSMRelation> getRelations()
+	public List<SkiArea> getAreas()
 	{
-		return relations;
+		return areas;
 	}
 
 	@Override

@@ -70,7 +70,14 @@ public class Route implements Comparable<Route>
 					double lat = a.getLatitude() + (b.getLatitude() - a.getLatitude())*p;
 					double lon = a.getLongitude() + (b.getLongitude() - a.getLongitude())*p;
 					
-					heights[metre] = heightmap.getHeightAt(lat, lon);
+					Double height = heightmap.getHeightAt(lat, lon);
+					
+					if (height==null)
+					{
+						return;
+					}
+					
+					heights[metre] = height;
 					
 					metre++;
 				}

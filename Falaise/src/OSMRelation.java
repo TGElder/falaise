@@ -41,7 +41,6 @@ public class OSMRelation implements OSMElement
 			{
 				OSMWay way = reader.getWays().get(id);
 				osmWays.add(way);
-				way.addRelation(this);
 				
 			}
 			else if (type.equals("relation"))
