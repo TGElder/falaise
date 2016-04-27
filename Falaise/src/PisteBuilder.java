@@ -10,10 +10,10 @@ import de.micromata.opengis.kml.v_2_2_0.*;
 
 public class PisteBuilder
 {
-	private Heightmap heightmap;
+	private HeightMap heightmap;
 	private Collection<Piste> pistes = new HashSet<Piste> ();
 	
-	public PisteBuilder(Heightmap heightmap)
+	public PisteBuilder(HeightMap heightmap)
 	{
 		this.heightmap = heightmap;
 	}

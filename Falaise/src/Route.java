@@ -45,7 +45,7 @@ public class Route implements Comparable<Route>
 		}
 	}
 	
-	public void computeAngles(Heightmap heightmap)
+	public void computeAngles(HeightMap heightmap)
 	{
 		if (osmNodes.size()>0&&length>0)
 		{

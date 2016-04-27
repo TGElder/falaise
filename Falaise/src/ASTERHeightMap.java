@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 
 
-public class Heightmap
+public class ASTERHeightMap implements HeightMap
 {
 	private int ncols;
 	private int nrows;
@@ -14,7 +14,7 @@ public class Heightmap
 	private double cellsize;
 	private int[][] heights;
 
-	public Heightmap(int ncols, int nrows, double xllcorner, double yllcorner, double cellsize, int[][]heights)
+	public ASTERHeightMap(int ncols, int nrows, double xllcorner, double yllcorner, double cellsize, int[][]heights)
 	{
 		this.ncols = ncols;
 		this.nrows = nrows;
@@ -112,7 +112,7 @@ public class Heightmap
 	public static void main(String[] args)
 	{
 		int[][] heights = loadFromCSV("three valleys.csv",1236,1256);
-		Heightmap heightmap = new Heightmap(1236,1256,6.402246000000,45.195848611650,0.000277769417,heights);
+		ASTERHeightMap heightmap = new ASTERHeightMap(1236,1256,6.402246000000,45.195848611650,0.000277769417,heights);
 				
 		try 
 		{

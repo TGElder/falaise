@@ -187,6 +187,8 @@ public class OSMReader
 	
 	public static void main(String[] args)
 	{
+		System.out.println("Opening OSM file");
+
 		OSMReader reader = new OSMReader("alps.osm");
 //		System.out.println(reader.getSkiAreas());
 //		
@@ -198,18 +200,32 @@ public class OSMReader
 //		reader.getRelations().get(3545276l); //Means reader will start by loading Three Valleys relation
 //		reader.getRelations().get(5994227l); //Means reader will start by loading Three Valleys relation
 
+		
 		reader.readAll();
+		System.out.println("Identifying OSM objects");
 		reader.run();
+		System.out.println("Creating OSM objects");
 		
-		
+		System.out.println("Building ski areas");
 		AreaBuilder areaBuilder = new AreaBuilder();
 		areaBuilder.build(reader.getWays().getValues(),reader.getRelations().getValues());
 		areaBuilder.attachToWays(reader.getWays().getValues());
 		
+		System.out.println("Loading alps 1.csv");
+		int[][] heights1 = ASTERHeightMap.loadFromCSV("alps1.csv",7919,14398);
+		ASTERHeightMap alps1 = new ASTERHeightMap(7919,14398,4.900138888889,44.000138888881,0.000277777778,heights1);
 		
-		int[][] heights = Heightmap.loadFromCSV("french_alps.csv",5003,6730);
-		Heightmap heightmap = new Heightmap(5003,6730,6.140138888889,44.560138888883,0.000277777778,heights);
+		System.out.println("Loading alps 2.csv");
+		int[][] heights2 = ASTERHeightMap.loadFromCSV("alps2.csv",7919,14398);
+		ASTERHeightMap alps2 = new ASTERHeightMap(7919,14398,6.900138888889,44.000138888881,0.000277777778,heights2);
+	
+		System.out.println("Creating heightmap");
+		PolyHeightMap heightmap = new PolyHeightMap();
+		heightmap.addHeightMap(alps1, 48, 44, 5, 7);
+		heightmap.addHeightMap(alps2, 48, 44, 7, 9);
 		
+		System.out.println("Building pistes");
+
 		PisteBuilder pisteBuilder = new PisteBuilder(heightmap);
 		pisteBuilder.build(reader.getWays().getValues());
 		

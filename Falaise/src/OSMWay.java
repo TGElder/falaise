@@ -31,7 +31,7 @@ public class OSMWay implements OSMElement
 		return areas;
 	}
 	
-	public void orientate(Heightmap heightmap)
+	public void orientate(HeightMap heightmap)
 	{
 		if (!osmNodes.isEmpty())
 		{
