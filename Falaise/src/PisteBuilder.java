@@ -34,31 +34,35 @@ public class PisteBuilder
 					name = osmWay.getAttributes().get("name");
 				}
 				
-				String ref = osmWay.getAttributes().get("piste:ref");
-				
-				String difficulty = osmWay.getAttributes().get("piste:difficulty");
-				
-				Piste piste=null;
-				
-				String area = "";
-				
-				for (SkiArea skiArea : osmWay.getAreas())
-				{
-					
-					if (area.length()>0)
-					{
-						area += "/";
-				
-					}
-					
-					area += skiArea.getName();
-					
-					
-
-				}
-				
 				if (name!=null)
 				{
+				
+					osmWay.orientate(heightmap);
+					
+					String ref = osmWay.getAttributes().get("piste:ref");
+					
+					String difficulty = osmWay.getAttributes().get("piste:difficulty");
+					
+					Piste piste=null;
+					
+					String area = "";
+					
+					for (SkiArea skiArea : osmWay.getAreas())
+					{
+						
+						if (area.length()>0)
+						{
+							area += "/";
+					
+						}
+						
+						area += skiArea.getName();
+						
+						
+	
+					}
+				
+				
 				
 					for (Piste candidate : pistes)
 					{

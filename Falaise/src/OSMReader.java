@@ -187,7 +187,7 @@ public class OSMReader
 	
 	public static void main(String[] args)
 	{
-		OSMReader reader = new OSMReader("french_alps.osm");
+		OSMReader reader = new OSMReader("alps.osm");
 //		System.out.println(reader.getSkiAreas());
 //		
 //		for (Long id : reader.getSkiAreas().keySet())
@@ -200,6 +200,7 @@ public class OSMReader
 
 		reader.readAll();
 		reader.run();
+		
 		
 		AreaBuilder areaBuilder = new AreaBuilder();
 		areaBuilder.build(reader.getWays().getValues(),reader.getRelations().getValues());

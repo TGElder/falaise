@@ -53,5 +53,11 @@ public class SkiArea
 		}
 
 	}
+	
+	@Override
+	public String toString()
+	{
+		return getName();
+	}
 
 }

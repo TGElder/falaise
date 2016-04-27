@@ -16,11 +16,7 @@ public class AreaBuilder
 			{
 				String name = osmWay.getAttributes().get("name");
 				
-				if (name.contains("Huez"))
-				{
-					System.out.println("BREAK POINT EVEN");
-				}
-				
+			
 				if (name!=null)
 				{
 					Polygon area = new Polygon();

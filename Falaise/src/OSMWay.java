@@ -1,10 +1,12 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
 
 public class OSMWay implements OSMElement
 {
@@ -27,6 +29,27 @@ public class OSMWay implements OSMElement
 	public List<SkiArea> getAreas()
 	{
 		return areas;
+	}
+	
+	public void orientate(Heightmap heightmap)
+	{
+		if (!osmNodes.isEmpty())
+		{
+		
+			OSMNode start = osmNodes.get(0);
+			OSMNode finish = osmNodes.get(osmNodes.size()-1);
+			
+			Double startHeight = heightmap.getHeightAt(start.getLatitude(), start.getLongitude());
+			Double finishHeight = heightmap.getHeightAt(finish.getLatitude(), finish.getLongitude());
+		
+			if (finishHeight!=null&&startHeight!=null&&finishHeight > startHeight)
+			{
+				Collections.reverse(osmNodes);
+				System.out.println("Reversing way "+id+" "+attributes+" in "+areas);
+			}
+				
+			
+		}
 	}
 
 	@Override

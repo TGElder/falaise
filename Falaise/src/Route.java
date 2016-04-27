@@ -47,6 +47,21 @@ public class Route implements Comparable<Route>
 	
 	public void computeAngles(Heightmap heightmap)
 	{
+		if (osmNodes.size()>0&&length>0)
+		{
+			OSMNode start = osmNodes.get(0);
+			OSMNode finish = osmNodes.get(osmNodes.size()-1);
+			
+			Double startHeight = heightmap.getHeightAt(start.getLatitude(), start.getLongitude());
+			Double finishHeight = heightmap.getHeightAt(finish.getLatitude(), finish.getLongitude());
+			
+			if (startHeight!=null&&finishHeight!=null)
+			{
+				avgAngle = Math.toDegrees(Math.atan((startHeight - finishHeight)/length));
+			}
+			
+		}
+				
 		if (length>100)
 		{
 		
@@ -86,7 +101,7 @@ public class Route implements Comparable<Route>
 				
 			}
 			
-			avgAngle = 0;
+			
 			
 			for (int h=0; h<heights.length - 100; h++)
 			{
@@ -94,12 +109,8 @@ public class Route implements Comparable<Route>
 				double angle = Math.toDegrees(Math.atan(rise/100.0));
 				
 				maxAngle = Math.max(angle, maxAngle);
-				
-				avgAngle += angle;
 			}
-			
-			avgAngle = avgAngle / (heights.length - 100);
-			
+						
 		}
 
 	}
