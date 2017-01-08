@@ -1,4 +1,4 @@
-Main.java in the elder.falaise packages contains a main method with a documented example of how to use this code to extract piste information from an Open Street Map file.
+Main.java in the elder.falaise package contains a main method with a documented example of how to use this code to extract piste information from an Open Street Map file.
 
 The input data is not provided. You will need an OSM file and height maps.
 
@@ -20,7 +20,6 @@ yllcorner    44.000138888881
 cellsize     0.000277777778
 
 4. For larger regions you will need to create a PolyHeightMap and load multiple height maps into it, e.g:
-
 PolyHeightMap heightmap = new PolyHeightMap();
 heightmap.addHeightMap(alps1, 48, 44, 5, 7);
 heightmap.addHeightMap(alps2, 48, 44, 7, 9);
