@@ -1,16 +1,3 @@
-/bin/
-/cdcll.csv
-/Falaise Lat Lon.csv
-/three valleys.csv
-/vt.osm
-/vt2.osm
-/tarentaise.csv
-/tarentaise.osm
-/out.kml
-/ways.kml
-/french_alps.csv
-/french_alps.osm
-/out.csv
-/alps.osm
-/alps1.csv
-/alps2.csv
+*.csv
+*.osm
+*.kml
