@@ -1,0 +1,17 @@
+
+	make text on axes unselectable
+new hosting
+
+	Axis Labels
+	Decent labels on plot
+	Padding
+	Fit to container
+	Embed in blog
+Remove mouseover highlight (change to click)
+	Zoom and scroll?
+	?mark characters
+make mobile friendly
+	broken sorting (trois valles should be last thing showing)
+put text elements into groups with scatter points
+label on mouseover
+title on area view

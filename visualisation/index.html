@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Pistes</title>
+    <script type="text/javascript" src="https://d3js.org/d3.v4.js"></script>
+</head>
+<style>
+
+    .axis {
+        font: 14px sans-serif;
+    }
+	.scatter_label {
+        font: 14px sans-serif;
+    }
+</style>
+
+<body>
+    <script type="text/javascript">
+		// Script to load piste data from CSV and display as interactive scatter plot using D3
+		// Thomas Elder 2017
+        var COLORS = {
+            "advanced": "black",
+            "intermediate": "red",
+            "easy": "blue",
+            "novice": "green",
+            "freeride": "orange"
+        };
+
+        // Width and height control the dimensions of the SVG rendering before it is scaled to viewport width and height
+        var WIDTH = 500;
+        var HEIGHT = 500;
+        var BUFFER = 10; // White space around graph
+        var MARGIN = 75; // Space between axis lines and edge of graph (space for labels)
+        var NUMBER_OF_TICKS = 10; // Ticks on axes
+        var MIN_PISTE_LENGTH = 500; // Will not include pistes shorter than this (in metres), either on the piste level plot or for aggregating to area-difficulty level
+        var MIN_DIFFICULTY_LENGTH = 10000; // Will not show area-difficulty combinations with total metres less than this
+        var SCATTER_BUFFER = 0.05; // Buffer between scatter points and axis lines (before zooming). Expressed in % of the range from min to max point.
+
+        var svg;
+        var rect;
+        var canvas;
+
+        var xAxis;
+        var yAxis;
+        var gx;
+        var gy;
+
+        var getR;
+        var getX;
+        var getY;
+        var getColor;
+
+        var xScale;
+        var yScale;
+
+        var zoom;
+
+        var pisteData
+
+        setupPlot();
+
+        // Loads data and sets up plot
+        function setupPlot() {
+            d3.csv("pistes.csv", function(data) {
+
+                // Remove areas with no name, pistes with no name or reference, pistes that are too short, flat pistes
+                pisteData = data.filter(function(d) {
+                    return d["Area"].length > 0 && (d["Piste"].length >
+                        0 || d["Ref"].length > 0) && +d[
+                        "Length"] > MIN_PISTE_LENGTH && +d[
+                        "Avg Angle"] > 0
+                })
+
+                // Main SVG object
+                svg = d3.select("body").append("svg")
+                    .on("click", function(d) {
+                        updateDataForAreaDifficulty();
+                        resetZoom();
+                    })
+                    .attr("preserveAspectRatio", "none")
+                    .attr("viewBox", "0 0 " + WIDTH + " " + HEIGHT);
+
+                // Rectangle to put behind plot (required for mobile browsers to capture zoom and drag events)
+                rect = svg.append("rect")
+                    .attr("opacity", "0")
+                    .attr("width", "100%")
+                    .attr("height", "100%");
+
+                // Rectangle that covers the area that scatter points should appear in
+                canvas = svg.append("rect")
+                    .attr("visibility", "hidden")
+                    .attr("width", WIDTH - (MARGIN + BUFFER * 2))
+                    .attr("height", HEIGHT - (MARGIN + BUFFER * 2))
+                    .attr("x", BUFFER + MARGIN)
+                    .attr("y", BUFFER)
+
+                updateDataForAreaDifficulty(); // X and Y scale must be created before axes can be created
+
+                // Creating axes
+                xAxis = d3.axisBottom(xScale)
+                    .ticks(NUMBER_OF_TICKS);
+
+                yAxis = d3.axisLeft(yScale)
+                    .ticks(NUMBER_OF_TICKS);
+
+                gx = svg.append("g")
+                    .attr("class", "axis")
+                    .attr("transform", "translate(" + 0 + "," + (HEIGHT -
+                        MARGIN - BUFFER) + ")")
+                    .attr("pointer-events", "none")
+                    .call(xAxis);
+
+                gy = svg.append("g")
+                    .attr("class", "axis")
+                    .attr("transform", "translate(" + (MARGIN + BUFFER) +
+                        "," + (0) + ")")
+                    .attr("pointer-events", "none")
+                    .call(yAxis);
+
+                // Labelling axes
+                var xLabelX = (WIDTH - (MARGIN + BUFFER * 2)) / 2 + (
+                    MARGIN + BUFFER);
+
+                svg.append("text")
+					.attr("class", "axis")
+                    .attr("transform",
+                        "translate(" + xLabelX + " ," + (HEIGHT - (
+                            MARGIN / 2)) + ")")
+                    .attr("pointer-events", "none")
+                    .style("text-anchor", "middle")
+                    .text("Average Angle");
+
+                var yLabelY = (HEIGHT - (MARGIN + BUFFER * 2)) / 2 +
+                    BUFFER;
+
+                svg.append("text")
+					.attr("class", "axis")
+                    .attr("transform", "rotate(-90) translate(" + (-
+                            yLabelY) + "," + (BUFFER + (MARGIN / 2)) +
+                        ")")
+                    .attr("pointer-events", "none")
+                    .style("text-anchor", "middle")
+                    .text("Maximum Angle");
+
+                zoom = d3.zoom().on('zoom', zoomed);
+
+                svg.call(zoom);
+
+            });
+        }
+
+        function zoomed() {
+
+            var transform = d3.event.transform;
+
+            // Zooming scatter points
+            var circles = svg.selectAll("circle");
+
+            circles.attr('cx', function(d) {
+                return transform.applyX(xScale(getX(d)));
+            });
+            circles.attr('cy', function(d) {
+                return transform.applyY(yScale(getY(d)));
+            });
+
+            // Zooming scatter labels
+            var texts = svg.selectAll(".scatter_label");
+
+            texts.attr('x', function(d) {
+                return transform.applyX(xScale(getX(d)));
+            });
+            texts.attr('y', function(d) {
+                return transform.applyY(yScale(getY(d)));
+            });
+
+            // Zooming axes
+            gx.call(xAxis.scale(d3.event.transform.rescaleX(xScale)));
+            gy.call(yAxis.scale(d3.event.transform.rescaleY(yScale)));
+
+            computeVisibility();
+
+        }
+
+        // Reset zoom (used after changing data in plot)
+        function resetZoom() {
+            d3.zoomIdentity = d3.zoomIdentity.translate(0, 0).scale(1);
+            svg.call(zoom.transform, d3.zoomIdentity);
+        }
+
+        // Creates scatter plot from data
+        // Function must be assigned to global variables getX, getY, getR, getColor and getLabel before this function is called
+        function scatter(data, onClick, onMouseOver, onMouseOut, onClickText) {
+
+            // Sorting data to ensure labels on largest points take priority
+            data = data.sort(function(a, b) {
+                return d3.descending(getR(a), getR(b))
+            });
+
+            // Creating X and Y scale
+            var minX = d3.min(data, getX);
+            var maxX = d3.max(data, getX);
+            var bufferX = (maxX - minX) * SCATTER_BUFFER;
+
+            xScale = d3.scaleLinear()
+                .domain([minX - bufferX, maxX + bufferX])
+                .range([BUFFER + MARGIN, WIDTH - BUFFER]);
+
+            var minY = d3.min(data, getY);
+            var maxY = d3.max(data, getY);
+            var bufferY = (maxY - minY) * SCATTER_BUFFER;
+
+            yScale = d3.scaleLinear()
+                .domain([minY - bufferY, maxY + bufferY])
+                .range([HEIGHT - (MARGIN + BUFFER), BUFFER]);
+
+            // Removing old points and lables
+            svg.selectAll("circle").remove();
+            svg.selectAll(".scatter_label").remove();
+
+            // Adding new points
+            svg.selectAll("p")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("r", function(d) {
+                    return rScale(getR(d))
+                })
+                .attr("cx", function(d) {
+                    return xScale(getX(d))
+                })
+                .attr("cy", function(d) {
+                    return yScale(getY(d))
+                })
+                .attr('opacity', 0.5)
+                .style("fill", getColor)
+                .on("mouseover", onMouseOver)
+                .on("mouseout", onMouseOut)
+                .on("click", onClick);
+
+            // Adding new labels
+            svg.selectAll("p")
+                .data(data)
+                .enter()
+                .append("text")
+                .attr("class", "scatter_label")
+                .attr("x", function(d) {
+                    return xScale(getX(d))
+                })
+                .attr("y", function(d) {
+                    return yScale(getY(d))
+                })
+                .text(getLabel)
+                .attr("fill", "black")
+                .attr("text-anchor", "middle")
+                .on("click", onClickText);
+
+            computeVisibility();
+        }
+
+        function getColorFromDifficulty(difficulty) {
+            out = COLORS[difficulty]
+            if (out == undefined) {
+                return "yellow";
+            } else {
+                return out;
+            }
+        }
+
+        // Creates first view - each point represents a ski area-difficulty combination
+        function updateDataForAreaDifficulty() {
+
+
+            var nest = d3.nest()
+                .key(function(d) {
+                    return d["Area"] + "|" + d["Difficulty"];
+                })
+                .rollup(function(v) {
+                    return {
+                        length: d3.sum(v, function(d) {
+                            return d["Length"];
+                        }),
+                        avg: d3.sum(v, function(d) {
+                            return d["Avg Angle"] * d["Length"];
+                        }) / d3.sum(v, function(d) {
+                            return d["Length"];
+                        }),
+                        max: d3.mean(v, function(d) {
+                            return d["Max Angle"];
+                        })
+                    };
+                })
+                .entries(pisteData);
+
+
+            nest = nest.filter(function(d) {
+                return d.value.length > MIN_DIFFICULTY_LENGTH;
+            });
+
+
+            getR = function(d) {
+                return d.value.length
+            };
+            rScale = d3.scaleLinear().domain([0, d3.max(nest, getR)]).range([5,
+                20
+            ]);
+            getX = function(d) {
+                return d.value.avg
+            };
+            getY = function(d) {
+                return d.value.max
+            };
+            getColor = function(d) {
+                return getColorFromDifficulty(d.key.split("|")[1])
+            };
+            getLabel = function(d) {
+                return d.key.split("|")[0]
+            };
+
+            // Call second view on click
+            onClick = function(d) {
+                updateDataForArea(d.key.split("|")[0]);
+                d3.event.stopPropagation();
+                resetZoom();
+            }
+
+            scatter(nest,
+                onClick,
+                // Highlight other points with same area on mouseover
+                function(d) {
+                    svg.selectAll("circle").style("opacity", function(e) {
+                        if (d.key.split("|")[0] == e.key.split("|")[
+                                0]) {
+                            return 1;
+                        } else {
+                            return 0.25
+                        }
+                    })
+                },
+                // Remove highlight on mouseout
+                function(d) {
+                    svg.selectAll("circle").style("opacity", "0.5")
+                },
+                onClick
+
+            );
+
+
+        }
+
+        // Creates second view - each point represents a piste
+        function updateDataForArea(area) {
+
+
+            data = pisteData.filter(function(d) {
+                return (d["Area"] == area)
+            });
+
+            getR = function(d) {
+                return +d["Length"]
+            };
+            rScale = d3.scaleLinear().domain([0, d3.max(data, getR)]).range([5,
+                20
+            ]);
+            getX = function(d) {
+                return +d["Avg Angle"]
+            };
+            getY = function(d) {
+                return +d["Max Angle"]
+            };
+            getColor = function(d) {
+                return getColorFromDifficulty(d["Difficulty"])
+            };
+            getLabel = function(d) {
+                var out = d["Piste"];
+                if (out.length == 0) {
+                    return d["Ref"]
+                } else {
+                    return d["Piste"]
+                } //Use piste reference if piste name is missing
+            };
+
+            scatter(data,
+                function(d) {
+                    d3.event.stopPropagation();
+                },
+                null,
+				null,
+				null
+            );
+
+
+
+        }
+
+        //Hides scatter points and text that should not be shwoing
+        function computeVisibility() {
+
+            //Get current boundary of canvas in screen coordinates
+            cbb = canvas._groups[0][0].getBoundingClientRect();
+
+            //Hide text labels that overlap other text labels
+            var labels = svg.selectAll(".scatter_label")._groups[0];
+
+            var labelBoundaries = [];
+
+            for (var i = 0; i < labels.length; i++) {
+
+                if (shouldHide(i, labels, labelBoundaries, cbb)) {
+                    labels[i].setAttribute("visibility", "hidden");
+                } else {
+                    labels[i].setAttribute("visibility", "visible");
+                }
+            }
+
+            //Hide points that are partially or wholly outside the canvas
+            svg.selectAll("circle")
+                .attr("visibility", function(d, e, f) {
+
+                    var ibb = f[e].getBoundingClientRect(); // Get boundary of point in screen coordinates
+
+                    if ((ibb.right > cbb.right || ibb.left < cbb.left ||
+                            ibb.bottom > cbb.bottom || ibb.top < cbb.top)) {
+                        return "hidden";
+                    } else {
+                        return "visible";
+                    }
+                })
+
+        }
+
+        // Check if the element at specified index in elements array should be hidden
+        // cbb is the current boundary of the canvas in screen coordinates
+        // boundaries is a list of the boundaries for all elements that have already been determined to be visible
+        function shouldHide(index, elements, boundaries, cbb) {
+
+            var ibb = elements[index].getBoundingClientRect();
+
+            // Hide elements that are partially or wholly outside the canvas
+            if ((ibb.right > cbb.right || ibb.left < cbb.left || ibb.bottom >
+                    cbb.bottom || ibb.top < cbb.top)) {
+                return true;
+            }
+
+            // Hide elements that overlap any element that is already visible
+            for (var j = 0; j < boundaries.length; j++) {
+
+                var jbb = boundaries[j];
+
+                if (!(ibb.right < jbb.left ||
+                        ibb.left > jbb.right ||
+                        ibb.bottom < jbb.top ||
+                        ibb.top > jbb.bottom)) {
+
+                    return true;
+
+                }
+
+            }
+
+            // Add to list of visible elements
+            boundaries.push(ibb);
+
+            return false;
+
+        }
+    </script>
+</body>
+
+</html>
